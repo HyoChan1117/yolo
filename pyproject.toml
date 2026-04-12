@@ -1,0 +1,18 @@
+[project]
+name = "yolo-door-agent"
+version = "0.1.0"
+requires-python = ">=3.10"
+
+dependencies = [
+    "python-dotenv",
+    "ultralytics",
+    "opencv-python",
+    "requests",
+]
+
+[tool.setuptools]
+py-modules = ["collect_dataset", "fine_tune", "preprocess_dataset", "yolo_webcam"]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"

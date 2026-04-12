@@ -5,7 +5,12 @@
       "Bash(venv/Scripts/pip install:*)",
       "Bash(venv/Scripts/python test_slack.py)",
       "Bash(PYTHONUTF8=1 venv/Scripts/python test_slack.py)",
-      "Bash(ls c:/.code/yolo/*.py)"
+      "Bash(ls c:/.code/yolo/*.py)",
+      "Skill(claude-api)",
+      "Skill(claude-api:*)"
+    ],
+    "additionalDirectories": [
+      "c:\\.code\\yolo"
     ]
   }
 }
