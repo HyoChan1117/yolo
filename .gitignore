@@ -10,3 +10,6 @@ dist/
 __pycache__/
 *.pyc
 *.pyo
+
+# roi
+roi.json
