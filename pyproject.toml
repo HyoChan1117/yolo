@@ -8,10 +8,12 @@ dependencies = [
     "ultralytics",
     "opencv-python",
     "requests",
+    "torch",
+    "torchvision",
 ]
 
 [tool.setuptools]
-py-modules = ["collect_dataset", "fine_tune", "preprocess_dataset", "yolo_webcam"]
+packages = ["human", "door"]
 
 [build-system]
 requires = ["setuptools"]
