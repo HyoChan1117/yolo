@@ -171,40 +171,16 @@ def set_door_state(state: str | None) -> None:
         _door_state = state
 
 
-# ── Flask 슬래시 커맨드 서버 ──────────────────────────────────
-app = Flask(__name__)
+STATE_FILE = Path("door_state.json")
 
 
-@app.route("/slack/door-status", methods=["POST"])
-def slack_door_status():
-    if SLACK_TOKEN and request.form.get("token") != SLACK_TOKEN:
-        return jsonify({"error": "unauthorized"}), 403
-
-    state = get_door_state()
-    if state == "door_open":
-        text = "문 상태: *열려 있음* :door:"
-    elif state == "door_closed":
-        text = "문 상태: *닫혀 있음* :lock:"
-    else:
-        text = "문 상태: *확인 중* (아직 판정 전)"
-
-    return jsonify({
-        "response_type": "in_channel",
-        "text": text,
-    })
-
-
-def _run_server() -> None:
-    import logging
-    log = logging.getLogger("werkzeug")
-    log.setLevel(logging.ERROR)  # Flask 요청 로그 억제
-    app.run(host="0.0.0.0", port=SERVER_PORT)
-
-
-# Flask 서버를 데몬 스레드로 시작
-threading.Thread(target=_run_server, daemon=True).start()
-print(f"Slack 서버 시작: http://0.0.0.0:{SERVER_PORT}/slack/door-status")
-print("ngrok 사용: ngrok http", SERVER_PORT)
+def _write_state(state: str | None) -> None:
+    try:
+        STATE_FILE.write_text(
+            json.dumps({"state": state}), encoding="utf-8"
+        )
+    except Exception:
+        pass
 
 # ── 웹캠 루프 ─────────────────────────────────────────────────
 cap = cv2.VideoCapture(CAMERA_INDEX)
@@ -248,6 +224,7 @@ while True:
             continue
         print(msg)
         send_slack(msg)
+        _write_state(door_state)
 
     # ── 화면 표시 ─────────────────────────────────────────────
     display = frame.copy()

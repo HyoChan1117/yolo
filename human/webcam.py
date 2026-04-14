@@ -16,6 +16,8 @@ import sys
 import threading
 from pathlib import Path
 
+import json
+
 import cv2
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
@@ -47,6 +49,31 @@ def set_count(n: int) -> None:
 
 # ── Flask 슬래시 커맨드 서버 ──────────────────────────────────
 app = Flask(__name__)
+
+
+DOOR_STATE_FILE = Path(__file__).parent.parent / "door_state.json"
+
+
+@app.route("/slack/door-status", methods=["POST"])
+def slack_door_status():
+    if SLACK_TOKEN and request.form.get("token") != SLACK_TOKEN:
+        return jsonify({"error": "unauthorized"}), 403
+
+    state = None
+    if DOOR_STATE_FILE.exists():
+        try:
+            state = json.loads(DOOR_STATE_FILE.read_text(encoding="utf-8")).get("state")
+        except Exception:
+            pass
+
+    if state == "door_open":
+        text = "문 상태: *열려 있음* :door:"
+    elif state == "door_closed":
+        text = "문 상태: *닫혀 있음* :lock:"
+    else:
+        text = "문 상태: *확인 중* (아직 판정 전)"
+
+    return jsonify({"response_type": "in_channel", "text": text})
 
 
 @app.route("/slack/people-count", methods=["POST"])

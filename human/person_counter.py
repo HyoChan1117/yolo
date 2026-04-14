@@ -71,9 +71,13 @@ def _try_onnx() -> bool:
 def _load_pt() -> None:
     global _model, _device
     if not PT_PATH.exists():
-        print(f"모델 없음: {PT_PATH}  yolov8n.pt 를 먼저 준비하세요.")
-        exit()
-    _model = YOLO(str(PT_PATH))
+        print(f"[모델] {PT_PATH} 없음 → 자동 다운로드 중...")
+        MODEL_DIR.mkdir(parents=True, exist_ok=True)
+        _model = YOLO("yolov8n.pt")  # ultralytics 캐시에서 다운로드
+        _model.save(str(PT_PATH))
+        print(f"[모델] 저장 완료: {PT_PATH}")
+    else:
+        _model = YOLO(str(PT_PATH))
     _device = "0" if torch.cuda.is_available() else "cpu"
     print(f"[백엔드] PyTorch  ({PT_PATH})  device={_device}")
 

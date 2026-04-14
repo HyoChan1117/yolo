@@ -9,10 +9,14 @@
       "Skill(claude-api)",
       "Skill(claude-api:*)",
       "Bash(ls c:/.code/yolo/*.py c:/.code/yolo/*.onnx)",
-      "Bash(ls c:/.code/yolo/*.pt)"
+      "Bash(ls c:/.code/yolo/*.pt)",
+      "Read(//c/Users/YJU/AppData/Local/**)",
+      "Read(//c/Users/YJU/**)",
+      "Bash(ngrok config:*)"
     ],
     "additionalDirectories": [
-      "c:\\.code\\yolo"
+      "c:\\.code\\yolo",
+      "C:\\Users\\YJU\\AppData\\Local\\Packages\\ngrok.ngrok_1g87z0zv29zzc\\LocalCache\\Local\\ngrok"
     ]
   }
 }

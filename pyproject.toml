@@ -8,8 +8,6 @@ dependencies = [
     "ultralytics",
     "opencv-python",
     "requests",
-    "torch",
-    "torchvision",
     "onnx",
     "numpy",
     "flask",
@@ -44,4 +42,14 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 
+# 노트북 환경
+# CUDA: 11.8
+# cuDNN: 8.9.0
 # pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+# pip install tensorrt tensorrt-cu11
+
+# 학교 데스크탑 환경
+# CUDA: 12.8
+# cuDNN: 9.8.0
+# pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+# pip install tensorrt tensorrt-cu12
