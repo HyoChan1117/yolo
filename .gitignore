@@ -15,5 +15,3 @@ __pycache__/
 roi.json
 
 models
-
-yolov8n.pt

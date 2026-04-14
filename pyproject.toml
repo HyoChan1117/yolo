@@ -10,6 +10,30 @@ dependencies = [
     "requests",
     "torch",
     "torchvision",
+    "onnx",
+    "numpy",
+    "flask",
+]
+
+[project.optional-dependencies]
+# ONNX GPU 추론용 (CUDA 11.8 호환)
+# 설치: pip install -e ".[gpu]"
+# ※ torch/torchvision는 CUDA 11.8 빌드로 별도 설치:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+gpu = [
+    "onnxruntime-gpu==1.17.3",
+]
+
+# TensorRT + pycuda (Windows 사전 요구사항)
+# 1. CUDA Toolkit 설치: https://developer.nvidia.com/cuda-downloads
+# 2. Microsoft Visual C++ Build Tools 설치 (VS 2022 권장)
+# 3. 환경변수 확인: CUDA_PATH, PATH 에 CUDA bin 포함 여부
+# 4. pip install -e ".[trt]"
+#
+# pycuda 빌드 실패 시 비공식 휠 사용:
+#   pip install pycuda --find-links https://github.com/cgohlke/pycuda-build/releases
+trt = [
+    "pycuda",
 ]
 
 [tool.setuptools]
@@ -18,3 +42,6 @@ packages = ["human", "door"]
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+
+# pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
