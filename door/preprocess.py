@@ -2,8 +2,6 @@
 
 dataset/raw/{class}/ → dataset/train/{class}/ + dataset/val/{class}/
 
-invalid 클래스는 학습에서 제외합니다.
-
 실행: python door/preprocess.py
 """
 
@@ -15,7 +13,7 @@ RAW_DIR = Path("dataset/raw")
 SPLIT_DIR = Path("dataset")
 VAL_RATIO = 0.2
 SEED = 42
-CLASSES = ["door_open", "door_closed"]  # invalid 제외
+CLASSES = ["door_open", "door_closed", "invalid"]
 
 random.seed(SEED)
 

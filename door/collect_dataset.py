@@ -26,7 +26,7 @@ load_dotenv()
 SAVE_DIR = Path("dataset/raw")
 ROI_FILE = Path("roi.json")
 CLASSES = ["door_open", "door_closed", "invalid"]
-CAMERA_INDEX = int(os.getenv("CAMERA_INDEX", "0"))
+CAMERA_INDEX = int(os.getenv("CAMERA_INDEX", "1"))
 
 for cls in CLASSES:
     (SAVE_DIR / cls).mkdir(parents=True, exist_ok=True)
@@ -37,19 +37,25 @@ if not cap.isOpened():
     exit()
 
 # ── ROI 선택 ──────────────────────────────────────────────────
-print("세콤 센서 위치를 드래그로 선택하세요. Enter/Space 로 확정, C 로 취소.")
 ret, frame = cap.read()
-roi = cv2.selectROI("ROI 선택 (드래그 후 Enter)", frame, showCrosshair=True, fromCenter=False)
-cv2.destroyWindow("ROI 선택 (드래그 후 Enter)")
 
-x, y, w, h = roi
-if w == 0 or h == 0:
-    print("ROI가 선택되지 않았어요.")
-    cap.release()
-    exit()
+if ROI_FILE.exists():
+    data = json.loads(ROI_FILE.read_text(encoding="utf-8"))
+    x, y, w, h = data["x"], data["y"], data["w"], data["h"]
+    print(f"roi.json 불러옴: x={x} y={y} w={w} h={h}")
+else:
+    print("세콤 센서 위치를 드래그로 선택하세요. Enter/Space 로 확정, C 로 취소.")
+    roi = cv2.selectROI("ROI 선택 (드래그 후 Enter)", frame, showCrosshair=True, fromCenter=False)
+    cv2.destroyWindow("ROI 선택 (드래그 후 Enter)")
 
-ROI_FILE.write_text(json.dumps({"x": x, "y": y, "w": w, "h": h}, indent=2), encoding="utf-8")
-print(f"ROI 저장: x={x} y={y} w={w} h={h}")
+    x, y, w, h = roi
+    if w == 0 or h == 0:
+        print("ROI가 선택되지 않았어요.")
+        cap.release()
+        exit()
+
+    ROI_FILE.write_text(json.dumps({"x": x, "y": y, "w": w, "h": h}, indent=2), encoding="utf-8")
+    print(f"ROI 저장: x={x} y={y} w={w} h={h}")
 
 # ── 수집 루프 ─────────────────────────────────────────────────
 counts = {cls: len(list((SAVE_DIR / cls).glob("*.jpg"))) for cls in CLASSES}

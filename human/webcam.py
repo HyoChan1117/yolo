@@ -17,7 +17,7 @@ from human.person_counter import PersonCounter
 
 load_dotenv()
 
-CAMERA_INDEX = int(os.getenv("CAMERA_INDEX", "0"))
+CAMERA_INDEX = int(os.getenv("CAMERA_INDEX", "1"))
 
 person_counter = PersonCounter()
 

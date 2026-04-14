@@ -13,3 +13,7 @@ __pycache__/
 
 # roi
 roi.json
+
+models
+
+yolov8n.pt

@@ -30,10 +30,10 @@ load_dotenv()
 
 MODEL_PATH = Path("door/models/best.pth")
 ROI_FILE = Path("roi.json")
-HOLD_DURATION = float(os.getenv("HOLD_DURATION", "3.0"))
+HOLD_DURATION = float(os.getenv("HOLD_DURATION", "5.0"))
 CONF_THRESH = float(os.getenv("DOOR_CONF_THRESH", "0.70"))
 SLACK_URL = os.getenv("SLACK_WEBHOOK_URL", "")
-CAMERA_INDEX = int(os.getenv("CAMERA_INDEX", "0"))
+CAMERA_INDEX = int(os.getenv("CAMERA_INDEX", "1"))
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 # ── ROI 로드 ──────────────────────────────────────────────────
@@ -107,11 +107,14 @@ while True:
     top_class, confidence = predict(crop)
     is_valid = confidence >= CONF_THRESH
 
-    if is_valid and top_class != pending_state:
+    if is_valid and top_class != "invalid" and top_class != pending_state:
         pending_state = top_class
         pending_start = now
 
     elapsed = now - (pending_start or now)
+
+    if is_valid and top_class == "invalid":
+        elapsed = 0
 
     if is_valid and pending_state and elapsed >= HOLD_DURATION and pending_state != door_state:
         door_state = pending_state
