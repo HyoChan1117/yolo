@@ -15,3 +15,5 @@ __pycache__/
 roi.json
 
 models
+
+door_state.json
