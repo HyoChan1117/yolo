@@ -1,15 +1,14 @@
-"""YOLO 사람 감지 모델 변환: .pt → .engine (TensorRT)
+"""YOLO 사람 감지 모델 변환: .onnx → .engine (TensorRT)
 
 실행 순서:
-  1. 모델 학습 또는 human/models/yolov8n.pt 준비
-  2. python human/export_yolo_onnx.py   # .onnx 생성 (선택)
-  3. python human/export_yolo_trt.py    # .engine 생성
+  1. python human/conversion/export_onnx.py   # yolo11n.onnx 생성
+  2. python human/conversion/export_trt.py    # yolo11n.engine 생성
 
 요구사항:
   - TensorRT 8.x 이상 (NVIDIA GPU 필수)
-  - ultralytics (tensorrt 백엔드 포함)
+  - tensorrt Python 패키지
 
-실행: python human/export_yolo_trt.py [--model human/models/yolov8n.pt] [--fp16] [--imgsz 640] [--workspace 4096]
+실행: python human/conversion/export_trt.py [--model human/models/yolo11n.onnx] [--fp16] [--workspace 4096]
 """
 
 import argparse
@@ -17,45 +16,56 @@ from pathlib import Path
 
 
 MODEL_DIR      = Path("human/models")
-DEFAULT_PT     = MODEL_DIR / "yolov8n.pt"
-DEFAULT_ENGINE = MODEL_DIR / "yolov8n.engine"
-IMG_SIZE       = 640
+DEFAULT_ONNX   = MODEL_DIR / "yolo11x.onnx"
+DEFAULT_ENGINE = MODEL_DIR / "yolo11x.engine"
 
 
 # ──────────────────────────────────────────────
-# 1. pt → TensorRT 엔진 빌드
+# 1. onnx → TensorRT 엔진 빌드
 # ──────────────────────────────────────────────
 def build_engine(
-    pt_path: Path,
+    onnx_path: Path,
     engine_path: Path,
-    imgsz: int,
     fp16: bool,
     workspace_mb: int,
 ) -> Path:
-    """YOLOv8 .pt 모델을 TensorRT 엔진으로 변환하고 저장 경로를 반환합니다."""
-    from ultralytics import YOLO
+    """YOLO .onnx 모델을 TensorRT 엔진으로 변환하고 저장 경로를 반환합니다."""
+    import tensorrt as trt
 
-    model = YOLO(str(pt_path))
-    print(f"[TRT] 엔진 빌드 시작: {pt_path}")
-    print(f"  imgsz={imgsz}, fp16={fp16}, workspace={workspace_mb}MB")
+    logger = trt.Logger(trt.Logger.WARNING)
+    builder = trt.Builder(logger)
+    network = builder.create_network(1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH))
+    parser = trt.OnnxParser(network, logger)
+
+    with open(onnx_path, "rb") as f:
+        if not parser.parse(f.read()):
+            for i in range(parser.num_errors):
+                print(f"[TRT] ONNX 파싱 오류: {parser.get_error(i)}")
+            raise RuntimeError("ONNX 파싱 실패")
+
+    config = builder.create_builder_config()
+    config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace_mb * 1024 * 1024)
+
+    if fp16:
+        if builder.platform_has_fast_fp16:
+            config.set_flag(trt.BuilderFlag.FP16)
+            print("[TRT] FP16 활성화")
+        else:
+            print("[TRT] 경고: 이 GPU는 FP16을 지원하지 않습니다. FP32로 빌드합니다.")
+
+    print(f"[TRT] 엔진 빌드 시작: {onnx_path}")
+    print(f"  fp16={fp16}, workspace={workspace_mb}MB")
     print("[TRT] 빌드 중... (수 분 소요될 수 있습니다)")
 
-    out = model.export(
-        format="engine",
-        imgsz=imgsz,
-        half=fp16,
-        batch=1,
-        dynamic=False,
-        workspace=workspace_mb,
-    )
+    serialized = builder.build_serialized_network(network, config)
+    if serialized is None:
+        raise RuntimeError("TensorRT 엔진 빌드 실패")
 
-    generated = Path(out)
-    if generated.resolve() != engine_path.resolve():
-        generated.rename(engine_path)
-        generated = engine_path
+    with open(engine_path, "wb") as f:
+        f.write(serialized)
 
-    print(f"[TRT] 엔진 저장 완료: {generated}")
-    return generated
+    print(f"[TRT] 엔진 저장 완료: {engine_path}")
+    return engine_path
 
 
 # ──────────────────────────────────────────────
@@ -67,10 +77,11 @@ def verify_engine(engine_path: Path, imgsz: int) -> None:
     from ultralytics import YOLO
 
     print(f"\n[TRT 검증] {engine_path} 로드 중...")
-    model = YOLO(str(engine_path))
+    model = YOLO(str(engine_path), task="detect")
+    model.overrides["imgsz"] = imgsz  # 엔진 빌드 크기와 일치시킴
 
     dummy = np.zeros((imgsz, imgsz, 3), dtype=np.uint8)
-    result = model(dummy, verbose=False)[0]
+    result = model(dummy, imgsz=imgsz, verbose=False)[0]
     n = len(result.boxes) if result.boxes is not None else 0
     print(f"[TRT 검증] 추론 성공 ✓  (감지 수: {n})")
 
@@ -79,15 +90,11 @@ def verify_engine(engine_path: Path, imgsz: int) -> None:
 # 3. 추론 헬퍼 (ultralytics TRT 래퍼)
 # ──────────────────────────────────────────────
 class TRTPersonDetector:
-    """yolov8n.engine 으로 사람을 감지하는 래퍼.
-
-    PersonCounter 와 동일한 인터페이스를 제공하므로 교체해서 사용할 수 있습니다.
-    ultralytics 가 전처리·후처리(NMS 포함)를 모두 처리합니다.
-    """
+    """yolo11n.engine 으로 사람을 감지하는 래퍼."""
 
     def __init__(self, engine_path: Path, conf_thresh: float = 0.35):
         from ultralytics import YOLO
-        self.model       = YOLO(str(engine_path))
+        self.model       = YOLO(str(engine_path), task="detect")
         self.conf_thresh = conf_thresh
         print(f"[TRT] 엔진 로드 완료: {engine_path}")
 
@@ -119,50 +126,38 @@ class TRTPersonDetector:
 # main
 # ──────────────────────────────────────────────
 def main():
-    parser = argparse.ArgumentParser(description="YOLO 사람 감지 모델 TensorRT 변환")
-    parser.add_argument("--model",       default=str(DEFAULT_PT),
-                        help=f"변환할 .pt 파일 경로 (기본: {DEFAULT_PT})")
+    parser = argparse.ArgumentParser(description="YOLO ONNX → TensorRT 엔진 변환")
+    parser.add_argument("--model",       default=str(DEFAULT_ONNX),
+                        help=f"변환할 .onnx 파일 경로 (기본: {DEFAULT_ONNX})")
     parser.add_argument("--output",      default=str(DEFAULT_ENGINE),
                         help=f"출력 .engine 경로 (기본: {DEFAULT_ENGINE})")
-    parser.add_argument("--imgsz",       type=int, default=IMG_SIZE,
-                        help=f"추론 이미지 크기 (기본: {IMG_SIZE})")
     parser.add_argument("--fp16",        action="store_true",
                         help="FP16 정밀도로 엔진 빌드 (속도 향상, 약간의 정확도 감소)")
     parser.add_argument("--workspace",   type=int, default=4096,
                         help="빌더 workspace 크기 (MB, 기본값: 4096)")
+    parser.add_argument("--imgsz",       type=int, default=640,
+                        help="검증용 이미지 크기 (기본: 640)")
     parser.add_argument("--skip-verify", action="store_true",
                         help="변환 후 검증 건너뜀")
     args = parser.parse_args()
 
-    pt_path     = Path(args.model)
+    onnx_path   = Path(args.model)
     engine_path = Path(args.output)
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
-    if not pt_path.exists():
+    if not onnx_path.exists():
         raise FileNotFoundError(
-            f"{pt_path} 가 없습니다. human/models/yolov8n.pt 를 준비하거나 --model 옵션을 확인하세요."
+            f"{onnx_path} 가 없습니다. 먼저 export_onnx.py 를 실행해 yolo11n.onnx 를 생성하세요."
         )
 
-    engine_path = build_engine(
-        pt_path, engine_path,
-        imgsz=args.imgsz,
-        fp16=args.fp16,
-        workspace_mb=args.workspace,
-    )
+    build_engine(onnx_path, engine_path, fp16=args.fp16, workspace_mb=args.workspace)
 
     if not args.skip_verify:
         verify_engine(engine_path, args.imgsz)
 
     print("\n변환 완료!")
     print(f"  Engine : {engine_path}")
-    print(f"  imgsz  : {args.imgsz}")
     print(f"  FP16   : {args.fp16}")
-    print(f"\n.env 에서 PERSON_MODEL_PATH 를 아래로 변경하면 TRT 엔진을 사용합니다:")
-    print(f"  PERSON_MODEL_PATH={engine_path}")
-    print("\nTRTPersonDetector 사용 예시:")
-    print("  from human.export_yolo_trt import TRTPersonDetector")
-    print(f"  detector = TRTPersonDetector('{engine_path}')")
-    print("  count, boxes, confs = detector.count(frame)")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,7 @@
+tracker_type: bytetrack
+track_high_thresh: 0.25
+track_low_thresh: 0.1
+new_track_thresh: 0.4   # 새 ID 발급 기준 — 너무 낮으면 ID가 남발됨
+track_buffer: 90        # 탐지 손실 후 트랙 유지 프레임 수 (90 ≈ 3초 @ 30fps)
+match_thresh: 0.85
+fuse_score: True

@@ -17,3 +17,10 @@ roi.json
 models
 
 door_state.json
+
+# datasets
+yolo_dataset
+
+datasets
+
+video

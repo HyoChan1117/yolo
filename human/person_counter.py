@@ -17,9 +17,9 @@ from ultralytics import YOLO
 load_dotenv()
 
 MODEL_DIR          = Path("human/models")
-TRT_PATH           = MODEL_DIR / "yolov8n.engine"
-ONNX_PATH          = MODEL_DIR / "yolov8n.onnx"
-PT_PATH            = MODEL_DIR / "yolov8n.pt"
+TRT_PATH           = MODEL_DIR / "yolo11n.engine"
+ONNX_PATH          = MODEL_DIR / "yolo11n.onnx"
+PT_PATH            = MODEL_DIR / "yolo11n.pt"
 PERSON_CONF_THRESH = float(os.getenv("PERSON_CONF_THRESH", "0.35"))
 BACKEND            = os.getenv("BACKEND", "auto").lower()  # auto | trt | onnx | pt
 
@@ -33,7 +33,7 @@ def _try_trt() -> bool:
         return False
     try:
         global _model, _device
-        _model = YOLO(str(TRT_PATH))
+        _model = YOLO(str(TRT_PATH), task="detect")
         _device = "0"
         print(f"[백엔드] TensorRT  ({TRT_PATH})")
         return True
@@ -59,7 +59,7 @@ def _try_onnx() -> bool:
         return False
     try:
         global _model, _device
-        _model = YOLO(str(ONNX_PATH))
+        _model = YOLO(str(ONNX_PATH), task="detect")
         _device = "0" if _onnx_cuda_available() else "cpu"
         print(f"[백엔드] ONNX Runtime  ({ONNX_PATH})  device={_device}")
         return True
@@ -73,11 +73,11 @@ def _load_pt() -> None:
     if not PT_PATH.exists():
         print(f"[모델] {PT_PATH} 없음 → 자동 다운로드 중...")
         MODEL_DIR.mkdir(parents=True, exist_ok=True)
-        _model = YOLO("yolov8n.pt")  # ultralytics 캐시에서 다운로드
+        _model = YOLO("yolo11n.pt")  # ultralytics 캐시에서 다운로드
         _model.save(str(PT_PATH))
         print(f"[모델] 저장 완료: {PT_PATH}")
     else:
-        _model = YOLO(str(PT_PATH))
+        _model = YOLO(str(PT_PATH), task="detect")
     _device = "0" if torch.cuda.is_available() else "cpu"
     print(f"[백엔드] PyTorch  ({PT_PATH})  device={_device}")
 
@@ -98,28 +98,43 @@ else:  # auto
             _load_pt()
 
 
+import numpy as np
+
+
 class PersonCounter:
     def __init__(self, conf_thresh: float = PERSON_CONF_THRESH):
         self.conf_thresh = conf_thresh
 
     def count(
         self, frame
-    ) -> tuple[int, list[tuple[int, int, int, int]], list[float]]:
-        """Returns (count, boxes, confidences) for all detected persons."""
-        result = _model(frame, verbose=False, device=_device)[0]
+    ) -> tuple[int, list[tuple[int, int, int, int]], list[float], list[np.ndarray | None]]:
+        """Returns (count, boxes, confidences, keypoints_list).
+
+        keypoints_list: list of (17, 3) arrays (x, y, conf) per person, or None if unavailable.
+        """
+        result = _model(frame, verbose=False, device=_device, conf=self.conf_thresh, classes=[0])[0]
         boxes: list[tuple[int, int, int, int]] = []
         confidences: list[float] = []
+        keypoints_list: list[np.ndarray | None] = []
 
         if result.boxes is None:
-            return 0, boxes, confidences
+            return 0, boxes, confidences, keypoints_list
 
-        for box in result.boxes:
-            cls_id = int(box.cls.item())
+        kpts = result.keypoints
+
+        for i, box in enumerate(result.boxes):
             conf = float(box.conf.item())
-            if cls_id != 0 or conf < self.conf_thresh:
+            if conf < self.conf_thresh:
                 continue
             x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
             boxes.append((x1, y1, x2, y2))
             confidences.append(conf)
 
-        return len(boxes), boxes, confidences
+            if kpts is not None:
+                xy = kpts.xy[i].cpu().numpy()        # (17, 2)
+                kp_conf = kpts.conf[i].cpu().numpy() if kpts.conf is not None else np.ones(17)
+                keypoints_list.append(np.concatenate([xy, kp_conf[:, None]], axis=1))  # (17, 3)
+            else:
+                keypoints_list.append(None)
+
+        return len(boxes), boxes, confidences, keypoints_list

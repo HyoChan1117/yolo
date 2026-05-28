@@ -2,14 +2,14 @@
 
 실행 순서:
   1. 모델 학습 또는 human/models/yolov8n.pt 준비
-  2. python human/export_yolo_onnx.py   # .onnx 생성
+  2. python human/conversion/export_onnx.py   # .onnx 생성
 
 요구사항:
   - ultralytics
   - onnx
   - onnxruntime-gpu (GPU 추론) 또는 onnxruntime (CPU 추론)
 
-실행: python human/export_yolo_onnx.py [--model human/models/yolov8n.pt] [--imgsz 640] [--fp16] [--skip-verify]
+실행: python human/conversion/export_onnx.py [--model human/models/yolov8n.pt] [--imgsz 640] [--fp16] [--skip-verify]
 """
 
 import argparse
@@ -17,8 +17,8 @@ from pathlib import Path
 
 
 MODEL_DIR    = Path("human/models")
-DEFAULT_PT   = MODEL_DIR / "yolov8n.pt"
-DEFAULT_ONNX = MODEL_DIR / "yolov8n.onnx"
+DEFAULT_PT   = "yolo11x.pt"
+DEFAULT_ONNX = MODEL_DIR / "yolo11x.onnx"
 IMG_SIZE     = 640
 
 
@@ -79,7 +79,7 @@ class ONNXPersonDetector:
 
     def __init__(self, onnx_path: Path, conf_thresh: float = 0.35):
         from ultralytics import YOLO
-        self.model       = YOLO(str(onnx_path))
+        self.model       = YOLO(str(onnx_path), task="detect")
         self.conf_thresh = conf_thresh
         print(f"[ONNX] 모델 로드 완료: {onnx_path}")
 
@@ -136,7 +136,7 @@ def main():
     else:
         if not pt_path.exists():
             raise FileNotFoundError(
-                f"{pt_path} 가 없습니다. human/models/yolov8n.pt 를 준비하거나 --model 옵션을 확인하세요."
+                f"{pt_path} 가 없습니다. human/models/yolo11n.pt 를 준비하거나 --model 옵션을 확인하세요."
             )
         onnx_path = export_onnx(pt_path, onnx_path, args.imgsz, args.fp16)
 
@@ -151,7 +151,7 @@ def main():
     print(f"\n.env 에서 PERSON_MODEL_PATH 를 아래로 변경하면 ONNX 모델을 사용합니다:")
     print(f"  PERSON_MODEL_PATH={onnx_path}")
     print("\nONNXPersonDetector 사용 예시:")
-    print("  from human.export_yolo_onnx import ONNXPersonDetector")
+    print("  from human.conversion.export_onnx import ONNXPersonDetector")
     print(f"  detector = ONNXPersonDetector('{onnx_path}')")
     print("  count, boxes, confs = detector.count(frame)")
 

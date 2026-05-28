@@ -12,7 +12,12 @@
       "Bash(ls c:/.code/yolo/*.pt)",
       "Read(//c/Users/YJU/AppData/Local/**)",
       "Read(//c/Users/YJU/**)",
-      "Bash(ngrok config:*)"
+      "Bash(ngrok config:*)",
+      "Bash(Remove-Item \"c:\\\\.code\\\\yolo\\\\human\\\\export_yolo_onnx.py\")",
+      "Bash(Remove-Item \"c:\\\\.code\\\\yolo\\\\human\\\\export_yolo_trt.py\")",
+      "Bash(git restore *)",
+      "Bash(venv\\\\Scripts\\\\python.exe human/webcam_pt.py)",
+      "Bash(pip install *)"
     ],
     "additionalDirectories": [
       "c:\\.code\\yolo",
