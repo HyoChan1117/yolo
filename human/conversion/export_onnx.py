@@ -17,8 +17,8 @@ from pathlib import Path
 
 
 MODEL_DIR    = Path("human/models")
-DEFAULT_PT   = "yolo11x.pt"
-DEFAULT_ONNX = MODEL_DIR / "yolo11x.onnx"
+DEFAULT_PT   = MODEL_DIR / "medium.pt"
+DEFAULT_ONNX = MODEL_DIR / "medium.onnx"
 IMG_SIZE     = 640
 
 
@@ -43,7 +43,7 @@ def export_onnx(pt_path: Path, onnx_path: Path, imgsz: int, fp16: bool) -> Path:
 
     generated = Path(out)
     if generated.resolve() != onnx_path.resolve():
-        generated.rename(onnx_path)
+        generated.replace(onnx_path)
         generated = onnx_path
 
     print(f"[ONNX] 저장 완료: {generated}")

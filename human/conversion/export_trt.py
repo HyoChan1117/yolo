@@ -18,7 +18,7 @@ from pathlib import Path
 MODEL_DIR      = Path("human/models")
 DEFAULT_ONNX   = MODEL_DIR / "yolo11x.onnx"
 DEFAULT_ENGINE = MODEL_DIR / "yolo11x.engine"
-
+IMGSZ = 640
 
 # ──────────────────────────────────────────────
 # 1. onnx → TensorRT 엔진 빌드
@@ -28,6 +28,7 @@ def build_engine(
     engine_path: Path,
     fp16: bool,
     workspace_mb: int,
+    imgsz: int = IMGSZ,
 ) -> Path:
     """YOLO .onnx 모델을 TensorRT 엔진으로 변환하고 저장 경로를 반환합니다."""
     import tensorrt as trt
@@ -53,8 +54,19 @@ def build_engine(
         else:
             print("[TRT] 경고: 이 GPU는 FP16을 지원하지 않습니다. FP32로 빌드합니다.")
 
+    # ONNX가 dynamic=True로 내보내진 경우 최적화 프로파일 필요
+    inp = network.get_input(0)
+    if -1 in inp.shape:
+        profile = builder.create_optimization_profile()
+        profile.set_shape(inp.name,
+                          (1, 3, imgsz, imgsz),
+                          (1, 3, imgsz, imgsz),
+                          (1, 3, imgsz, imgsz))
+        config.add_optimization_profile(profile)
+        print(f"[TRT] 동적 입력 감지 — 최적화 프로파일 설정: imgsz={imgsz}")
+
     print(f"[TRT] 엔진 빌드 시작: {onnx_path}")
-    print(f"  fp16={fp16}, workspace={workspace_mb}MB")
+    print(f"  fp16={fp16}, workspace={workspace_mb}MB, imgsz={imgsz}")
     print("[TRT] 빌드 중... (수 분 소요될 수 있습니다)")
 
     serialized = builder.build_serialized_network(network, config)
@@ -150,7 +162,7 @@ def main():
             f"{onnx_path} 가 없습니다. 먼저 export_onnx.py 를 실행해 yolo11n.onnx 를 생성하세요."
         )
 
-    build_engine(onnx_path, engine_path, fp16=args.fp16, workspace_mb=args.workspace)
+    build_engine(onnx_path, engine_path, fp16=args.fp16, workspace_mb=args.workspace, imgsz=args.imgsz)
 
     if not args.skip_verify:
         verify_engine(engine_path, args.imgsz)

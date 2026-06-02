@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(\\(Get-ChildItem \"c:\\\\.code\\\\yolo\\\\yolo_dataset\\\\train\\\\images\" -File\\).Count; \\(Get-ChildItem \"c:\\\\.code\\\\yolo\\\\yolo_dataset\\\\valid\\\\images\" -File\\).Count; \\(Get-ChildItem \"c:\\\\.code\\\\yolo\\\\yolo_dataset\\\\train\\\\labels\" -File\\).Count)",
+      "Bash(Get-ChildItem \"c:\\\\.code\\\\yolo\")",
+      "Bash(Select-Object Name, LastWriteTime)",
+      "PowerShell(Remove-Item \"c:\\\\.code\\\\yolo\\\\logs\" -Recurse -Force -Confirm:$false)",
+      "PowerShell(Remove-Item \"c:\\\\.code\\\\yolo\\\\runs\" -Recurse -Force -Confirm:$false)",
+      "PowerShell(Remove-Item \"c:\\\\.code\\\\yolo\\\\door\" -Recurse -Force -Confirm:$false)",
+      "PowerShell(Remove-Item \"c:\\\\.code\\\\yolo\\\\jetson\" -Recurse -Force -Confirm:$false)",
+      "PowerShell(Remove-Item \"c:\\\\.code\\\\yolo\\\\yolo_dataset\" -Recurse -Force -Confirm:$false)",
+      "PowerShell(Remove-Item \"c:\\\\.code\\\\yolo\\\\human\\\\datasets\" -Recurse -Force -Confirm:$false)",
+      "PowerShell(Remove-Item \"c:\\\\.code\\\\yolo\\\\human\\\\conversion\" -Recurse -Force -Confirm:$false)",
+      "PowerShell(Remove-Item \"c:\\\\.code\\\\yolo\\\\human\\\\__pycache__\" -Recurse -Force -Confirm:$false)",
+      "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\.code\\\\yolo\\\\logs\" -Force)"
+    ]
+  }
+}
