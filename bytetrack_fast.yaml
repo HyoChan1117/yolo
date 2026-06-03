@@ -1,0 +1,8 @@
+# ByteTrack - 빠른 이동 객체 최적화
+tracker_type: bytetrack
+track_high_thresh: 0.3    # 기본 0.25 → 낮은 신뢰도 탐지도 1단계에서 매칭
+track_low_thresh: 0.1     # 기본값 유지
+new_track_thresh: 0.3     # 기본 0.25 → 너무 낮으면 노이즈 트랙 생성
+track_buffer: 60          # 기본 30 → 2배: 빠른 이동으로 잠깐 사라져도 ID 유지
+match_thresh: 0.7         # 기본 0.8 → 낮춰서 빠른 이동 시 IOU 낮아도 매칭
+fuse_score: True

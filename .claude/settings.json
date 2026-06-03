@@ -12,7 +12,8 @@
       "PowerShell(Remove-Item \"c:\\\\.code\\\\yolo\\\\human\\\\datasets\" -Recurse -Force -Confirm:$false)",
       "PowerShell(Remove-Item \"c:\\\\.code\\\\yolo\\\\human\\\\conversion\" -Recurse -Force -Confirm:$false)",
       "PowerShell(Remove-Item \"c:\\\\.code\\\\yolo\\\\human\\\\__pycache__\" -Recurse -Force -Confirm:$false)",
-      "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\.code\\\\yolo\\\\logs\" -Force)"
+      "PowerShell(New-Item -ItemType Directory -Path \"c:\\\\.code\\\\yolo\\\\logs\" -Force)",
+      "Bash(Test-Path \"c:\\\\.code\\\\yolo\\\\line_counter_dual_botsort.py\")"
     ]
   }
 }

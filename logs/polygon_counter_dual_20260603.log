@@ -1,0 +1,65 @@
+2026-06-03 20:46:24  IN   manual  count=1
+2026-06-03 20:46:25  IN   manual  count=2
+2026-06-03 20:46:25  IN   manual  count=3
+2026-06-03 20:46:25  IN   manual  count=4
+2026-06-03 20:46:26  IN   manual  count=5
+2026-06-03 20:46:29  [CAM2] track rematch: 1→2 (dist=0.5)
+2026-06-03 20:46:37  [CAM2] track rematch: 2→3 (dist=0.3)
+2026-06-03 20:47:21  [CAM2] track rematch: 3→9 (dist=0.4)
+2026-06-03 20:48:09  IN   manual  count=1
+2026-06-03 20:48:09  IN   manual  count=2
+2026-06-03 20:48:09  IN   manual  count=3
+2026-06-03 20:48:09  IN   manual  count=4
+2026-06-03 20:48:10  IN   manual  count=5
+2026-06-03 20:50:38  [CAM1] track rematch: 2→4 (dist=7.2)
+2026-06-03 20:51:49  [CAM2] track rematch: 5→7 (dist=0.3)
+2026-06-03 20:52:00  [CAM2] track rematch: 7→8 (dist=0.5)
+2026-06-03 20:52:16  [CAM2] track rematch: 8→9 (dist=0.6)
+2026-06-03 20:52:25  [CAM2] track rematch: 9→10 (dist=0.4)
+2026-06-03 20:53:12  [CAM2] track rematch: 10→11 (dist=0.4)
+2026-06-03 20:53:55  [CAM2] track rematch: 11→12 (dist=0.3)
+2026-06-03 20:54:29  [CAM2] track rematch: 12→13 (dist=0.3)
+2026-06-03 20:54:57  [CAM2] track rematch: 13→15 (dist=0.7)
+2026-06-03 20:55:07  [CAM2] track rematch: 15→16 (dist=1.2)
+2026-06-03 20:55:11  [CAM2] track rematch: 16→17 (dist=0.4)
+2026-06-03 20:55:46  [CAM2] track rematch: 17→19 (dist=0.8)
+2026-06-03 20:56:43  [CAM2] track rematch: 19→20 (dist=0.2)
+2026-06-03 20:56:57  [CAM2] track rematch: 20→22 (dist=0.3)
+2026-06-03 20:57:03  [CAM2] track rematch: 22→23 (dist=0.4)
+2026-06-03 20:57:05  [CAM1] track rematch: 4→24 (dist=8.6)
+2026-06-03 20:57:07  [CAM2] track rematch: 23→26 (dist=0.2)
+2026-06-03 20:57:08  [CAM1] track rematch: 24→27 (dist=5.2)
+2026-06-03 20:57:08  [CAM1] track rematch: 27→24 (dist=1.6)
+2026-06-03 20:57:33  [CAM2] track rematch: 26→28 (dist=0.1)
+2026-06-03 20:58:00  [CAM2] track rematch: 28→29 (dist=0.4)
+2026-06-03 20:58:49  [CAM2] track rematch: 29→30 (dist=0.6)
+2026-06-03 20:59:01  [CAM2] track rematch: 30→31 (dist=0.2)
+2026-06-03 20:59:58  [CAM1] OUT  count=4  tid=33
+2026-06-03 21:00:18  [CAM1] IN   count=5  tid=33
+2026-06-03 21:00:20  [CAM1] OUT  count=4  tid=33
+2026-06-03 21:00:29  [CAM1] IN   count=5  tid=33
+2026-06-03 21:00:30  [CAM2] track rematch: 31→35 (dist=0.4)
+2026-06-03 21:00:33  [CAM1] OUT  count=4  tid=33
+2026-06-03 21:00:36  [CAM1] IN   count=5  tid=33
+2026-06-03 21:00:38  [CAM1] OUT  count=4  tid=33
+2026-06-03 21:00:39  [CAM1] IN   count=5  tid=33
+2026-06-03 21:00:41  [CAM2] track rematch: 35→37 (dist=0.4)
+2026-06-03 21:00:52  [CAM2] track rematch: 37→38 (dist=0.3)
+2026-06-03 21:01:16  [CAM2] track rematch: 38→39 (dist=0.2)
+2026-06-03 21:01:24  [CAM2] track rematch: 39→40 (dist=0.2)
+2026-06-03 21:01:47  [CAM1] OUT  count=4  tid=33
+2026-06-03 21:01:47  [CAM1] IN   count=5  tid=33
+2026-06-03 21:01:48  [CAM1] OUT  count=4  tid=33
+2026-06-03 21:01:49  [CAM1] IN   count=5  tid=33
+2026-06-03 21:01:49  [CAM1] OUT  count=4  tid=33
+2026-06-03 21:01:49  [CAM1] IN   count=5  tid=33
+2026-06-03 21:01:50  [CAM1] OUT  count=4  tid=33
+2026-06-03 21:01:50  [CAM1] IN   count=5  tid=33
+2026-06-03 21:01:54  [CAM1] track rematch: 44→44 (dist=0.1)
+2026-06-03 21:02:04  [CAM1] OUT  count=4  tid=33
+2026-06-03 21:02:07  [CAM1] track rematch: 33→46 (dist=33.8)
+2026-06-03 21:02:09  [CAM1] IN   count=5  tid=46
+2026-06-03 21:02:35  [CAM2] track rematch: 40→48 (dist=0.5)
+2026-06-03 21:02:53  [CAM2] track rematch: 48→49 (dist=0.3)
+2026-06-03 21:03:28  [CAM1] OUT  count=4  tid=46
+2026-06-03 21:03:48  [CAM2] track rematch: 49→53 (dist=0.4)

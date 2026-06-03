@@ -1,10 +1,17 @@
+# BoT-SORT - 빠른 이동 객체 최적화 (bytetrack_fast.yaml 기준 조정)
 tracker_type: botsort
-track_high_thresh: 0.5
+track_high_thresh: 0.3    # 기본 0.25 → 낮은 신뢰도 탐지도 1단계 매칭
 track_low_thresh: 0.1
-new_track_thresh: 0.6
-track_buffer: 30
-match_thresh: 0.7
+new_track_thresh: 0.3     # 기본 0.25 → 노이즈 트랙 억제
+track_buffer: 60          # 기본 30 → 빠른 이동/일시 소실에도 ID 유지
+match_thresh: 0.7         # 기본 0.8 → 빠른 이동 시 IoU 낮아도 매칭
+fuse_score: True
+
+# BoT-SORT 전용 - 카메라 흔들림 보정
+gmc_method: sparseOptFlow  # 고정 카메라 환경에도 안전하게 사용 가능
+
+# ReID (미사용)
 proximity_thresh: 0.5
-appearance_thresh: 0.25
-with_reid: false
-gmc_method: sparseOptFlow
+appearance_thresh: 0.8
+with_reid: True
+model: auto

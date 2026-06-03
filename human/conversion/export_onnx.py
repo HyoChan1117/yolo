@@ -17,8 +17,8 @@ from pathlib import Path
 
 
 MODEL_DIR    = Path("human/models")
-DEFAULT_PT   = MODEL_DIR / "medium.pt"
-DEFAULT_ONNX = MODEL_DIR / "medium.onnx"
+DEFAULT_PT   = MODEL_DIR / "yolov8n.pt"
+DEFAULT_ONNX = MODEL_DIR / "yolov8n.onnx"
 IMG_SIZE     = 640
 
 

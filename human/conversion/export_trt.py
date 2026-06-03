@@ -16,8 +16,8 @@ from pathlib import Path
 
 
 MODEL_DIR      = Path("human/models")
-DEFAULT_ONNX   = MODEL_DIR / "yolo11x.onnx"
-DEFAULT_ENGINE = MODEL_DIR / "yolo11x.engine"
+DEFAULT_ONNX   = MODEL_DIR / "yolov8n.onnx"
+DEFAULT_ENGINE = MODEL_DIR / "yolov8n.engine"
 IMGSZ = 640
 
 # ──────────────────────────────────────────────
@@ -57,6 +57,7 @@ def build_engine(
     # ONNX가 dynamic=True로 내보내진 경우 최적화 프로파일 필요
     inp = network.get_input(0)
     if -1 in inp.shape:
+        actual_imgsz = imgsz
         profile = builder.create_optimization_profile()
         profile.set_shape(inp.name,
                           (1, 3, imgsz, imgsz),
@@ -64,9 +65,12 @@ def build_engine(
                           (1, 3, imgsz, imgsz))
         config.add_optimization_profile(profile)
         print(f"[TRT] 동적 입력 감지 — 최적화 프로파일 설정: imgsz={imgsz}")
+    else:
+        actual_imgsz = inp.shape[2]  # 정적 shape: ONNX 원본 크기 사용
+        print(f"[TRT] 정적 입력 감지 — ONNX 원본 imgsz={actual_imgsz} 사용")
 
     print(f"[TRT] 엔진 빌드 시작: {onnx_path}")
-    print(f"  fp16={fp16}, workspace={workspace_mb}MB, imgsz={imgsz}")
+    print(f"  fp16={fp16}, workspace={workspace_mb}MB, imgsz={actual_imgsz}")
     print("[TRT] 빌드 중... (수 분 소요될 수 있습니다)")
 
     serialized = builder.build_serialized_network(network, config)
@@ -77,7 +81,7 @@ def build_engine(
         f.write(serialized)
 
     print(f"[TRT] 엔진 저장 완료: {engine_path}")
-    return engine_path
+    return engine_path, actual_imgsz
 
 
 # ──────────────────────────────────────────────
@@ -162,10 +166,10 @@ def main():
             f"{onnx_path} 가 없습니다. 먼저 export_onnx.py 를 실행해 yolo11n.onnx 를 생성하세요."
         )
 
-    build_engine(onnx_path, engine_path, fp16=args.fp16, workspace_mb=args.workspace, imgsz=args.imgsz)
+    _, actual_imgsz = build_engine(onnx_path, engine_path, fp16=args.fp16, workspace_mb=args.workspace, imgsz=args.imgsz)
 
     if not args.skip_verify:
-        verify_engine(engine_path, args.imgsz)
+        verify_engine(engine_path, actual_imgsz)
 
     print("\n변환 완료!")
     print(f"  Engine : {engine_path}")
